@@ -1,21 +1,46 @@
 const db = require("../database/models");
 const path = require("path");
-const { Op, literal, col, fn } = require("sequelize");
+const { Op, literal } = require("sequelize");
 
 const literalQueryUrlImage = (req, field, alias) => {
   const urlImage = (req) => `${req.get("host")}/products/image/`;
   /* field = campo */
-  return [ literal(`CONCAT( SUBSTRING('${urlImage(req)}',1),SUBSTRING( ${field}, 1 ))`), alias ];
+  return [
+    literal(
+      `CONCAT( SUBSTRING('${urlImage(req)}',1),SUBSTRING( ${field}, 1 ))`
+    ),
+    alias,
+  ];
+};
+
+const bailErrorField = (errMsg) => {
+  const arrErrors = errMsg
+	.replace(/\n?validation error:/ig, "") // reemplazamos el texto que nos envía por defecto sequelize
+    .trim() // quitamos si existe espacios al final o al principio
+    .split(","); //convertimo el string en un array buscando ","
+
+  const indexError = arrErrors.length - 1;
+  return arrErrors
+};
+
+const sendJsonError = ({status,message}, res) => {
+  return res.status(status || 500).json({
+    ok: false,
+    status: status || 500,
+    msg: bailErrorField(message),
+		m:message
+  });
 };
 
 const controller = {
+  // API -> GET IMAGE IN VIEW
   image: (req, res) => {
     return res.sendFile(
       path.join(__dirname, "../../public/images/products", req.params.img)
     );
   },
 
-  // Root - Show all products
+  // API -> ALL PRODUCTS + QUERIES
   all: (req, res) => {
     // return res.json({url:req.get('host')})
     // Do the magic
@@ -25,25 +50,22 @@ const controller = {
     let options = {
       limit: !isNaN(+limit) ? +limit : 16,
       offset: !isNaN(+offset) ? +offset : 0,
-      // include: [ "images", "category"]
-			attributes:{
-				exclude:['createdAt','updatedAt','deletedAt']
-			},
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "deletedAt"],
+      },
       include: [
         {
           association: "images",
           attributes: {
-            include: [
-              literalQueryUrlImage(req,'images.file','url'),
-            ],
-						exclude:['createdAt','updatedAt','productId','id']
+            include: [literalQueryUrlImage(req, "images.file", "url")],
+            exclude: ["createdAt", "updatedAt", "productId", "id"],
           },
         },
         {
           association: "category",
-					attributes: {
-						exclude: ['createdAt','updatedAt','deletedAt']
-					}
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "deletedAt"],
+          },
         },
       ],
     };
@@ -74,7 +96,8 @@ const controller = {
     }
 
     db.Product.findAndCountAll(options)
-      .then(({ count, rows: products }) => {
+
+      .then(({ count, rows: products }) =>
         /* ESTADO 200 -> «Todo está bien» Este es el código que se entrega cuando una página web o recurso actúa exactamente como se espera. */
         res.status(200).json({
           meta: {
@@ -85,94 +108,85 @@ const controller = {
             total: count,
             products,
           },
-        });
-      })
-
-      .catch((err) => {
-        /* Error 500 -> «Hubo un error en el servidor y la solicitud no pudo ser completada» */
-        res.status(400).json({
-          ok: false,
-          status: err.status,
-          msg: err,
-        });
-      });
-
-  },
-
-  // Detail - Detail from one product
-  detail: (req, res) => {
-    // Do the magic
-    db.Product.findByPk(req.params.id, {
-      include: ["images"],
-    })
-      .then((product) =>
-        res.render("detail", {
-          product,
-          toThousand,
         })
       )
-      .catch((error) => console.log(error));
+
+      .catch((err) => sendJsonError(err, res));
   },
 
-  // Create - Form to create
-  create: (req, res) => {
-    // Do the magic
-    db.Category.findAll({
-      attributes: ["id", "name"],
-      order: ["name"],
-    })
-      .then((categories) => {
-        return res.render("product-create-form", {
-          categories,
-        });
-      })
-      .catch((error) => console.log(error));
+  // API -> DETAIL PRODUCT
+  detail: (req, res) => {
+    /* OPTIONS --> PROPERTIES DEFAULT */
+    let options = {
+      attributes: {
+        exclude: ["createdAt", "updatedAt", "deletedAt"],
+      },
+      include: [
+        {
+          association: "images",
+          attributes: {
+            include: [literalQueryUrlImage(req, "images.file", "url")],
+            exclude: ["createdAt", "updatedAt", "productId", "id"],
+          },
+        },
+      ],
+    };
+
+    db.Product.findByPk(req.params.id, options)
+
+      .then((data) =>
+        res.status(200).json({
+          meta: {
+            ok: true,
+            status: 200,
+          },
+          data,
+        })
+      )
+
+      .catch((err) => sendJsonError(err, res));
   },
 
-  // Create -  Method to store
+  // API -> STORAGE PRODUCT
   store: (req, res) => {
-    // Do the magic
+    const { name, description } = req.body;
+
     db.Product.create({
       ...req.body,
-      name: req.body.name.trim(),
-      description: req.body.description.trim(),
-    })
+      name: name,
+      description: description,
+    },{validate: true})
+
       .then((product) => {
-        if (req.files.length) {
+        if (req.files?.length) {
           let images = req.files.map(({ filename }) => {
             return {
               file: filename,
               productId: product.id,
             };
           });
-          db.Image.bulkCreate(images, {
-            validate: true,
-          }).then((result) => console.log(result));
+
+          db.Image.bulkCreate(images,{validate: true}).catch(() => {
+            throw new Error("Image not saved");
+          });
         }
-        return res.redirect("/products");
-      })
-      .catch((error) => console(error));
-  },
 
-  // Update - Form to edit
-  edit: (req, res) => {
-    // Do the magic
-    let categories = db.Category.findAll({
-      attributes: ["id", "name"],
-      order: ["name"],
-    });
-    let product = db.Product.findByPk(req.params.id);
-
-    Promise.all([categories, product])
-      .then(([categories, product]) => {
-        return res.render("product-edit-form", {
-          product,
-          categories,
+        Promise.resolve(product).then((data) => {
+          /* 201: «Creado». El servidor ha cumplido con la petición del navegador y, como resultado, ha creado un nuevo recurso. */
+          res.status(201).json({
+            meta: {
+              ok: true,
+              status: 201,
+            },
+            data,
+          });
         });
       })
-      .catch((error) => console.log(error));
+
+      .catch((err) => sendJsonError(err, res));
   },
-  // Update - Method to update
+
+  // API -> UPDATE PRODUCT
   update: (req, res) => {
     // Do the magic
     db.Product.update(
@@ -191,7 +205,7 @@ const controller = {
       .catch((error) => console.log(error));
   },
 
-  // Delete - Delete one product from DB
+  // API -> DELETE PRODUCT
   destroy: (req, res) => {
     // Do the magic
 
