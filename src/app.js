@@ -7,12 +7,12 @@ const path = require("path");
 const app = express();
 
 /* Middleware */
-app.use(express.static(path.join(__dirname, "../public")));
+/* app.use(express.static(path.join(__dirname, "../public"))); */
 app.use(express.urlencoded({ extended: false }));
 app.use(logger("dev"));
 app.use(express.json());
 
-app.set('views', path.join(__dirname, 'views'));
+/* app.set('views', path.join(__dirname, 'views')); */
 
 /* Routers */
 /* const mainRouter = require("./routes/main"); // Rutas main */
@@ -35,8 +35,6 @@ app.use("*",(req, res) => {
 
 
 app.use((err, req, res, next) => {
-
-  res.locals.error = req.app.get("env") === "development" ? err : {};
 
   res.status(err.status || 500).json({
     ok: false,

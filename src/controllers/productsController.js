@@ -1,36 +1,9 @@
 const db = require("../database/models");
 const path = require("path");
-const { Op, literal } = require("sequelize");
+const { Op } = require("sequelize");
+const fs = require("fs");
 
-const literalQueryUrlImage = (req, field, alias) => {
-  const urlImage = (req) => `${req.get("host")}/products/image/`;
-  /* field = campo */
-  return [
-    literal(
-      `CONCAT( SUBSTRING('${urlImage(req)}',1),SUBSTRING( ${field}, 1 ))`
-    ),
-    alias,
-  ];
-};
-
-const bailErrorField = (errMsg) => {
-  const arrErrors = errMsg
-	.replace(/\n?validation error:/ig, "") // reemplazamos el texto que nos envía por defecto sequelize
-    .trim() // quitamos si existe espacios al final o al principio
-    .split(","); //convertimo el string en un array buscando ","
-
-  const indexError = arrErrors.length - 1;
-  return arrErrors
-};
-
-const sendJsonError = ({status,message}, res) => {
-  return res.status(status || 500).json({
-    ok: false,
-    status: status || 500,
-    msg: bailErrorField(message),
-		m:message
-  });
-};
+const { literalQueryUrlImage, sendJsonError } = require("../helpers");
 
 const controller = {
   // API -> GET IMAGE IN VIEW
@@ -149,24 +122,26 @@ const controller = {
 
   // API -> STORAGE PRODUCT
   store: (req, res) => {
-    const { name, description } = req.body;
+    const { name, description, price, discount, categoryId } = req.body;
 
     db.Product.create({
-      ...req.body,
-      name: name,
-      description: description,
-    },{validate: true})
+      name: name?.trim(),
+      description: description?.trim(),
+      price,
+      discount,
+      categoryId,
+    })
 
       .then((product) => {
         if (req.files?.length) {
-          let images = req.files.map(({ filename }) => {
+          const images = req.files.map(({ filename }) => {
             return {
               file: filename,
               productId: product.id,
             };
           });
 
-          db.Image.bulkCreate(images,{validate: true}).catch(() => {
+          db.Image.bulkCreate(images).catch(() => {
             throw new Error("Image not saved");
           });
         }
@@ -180,20 +155,48 @@ const controller = {
             },
             data,
           });
+          // req.fileValidationError = "";
         });
       })
 
-      .catch((err) => sendJsonError(err, res));
+      .catch((err) => {
+        /* Esta validación de archivos "images" se origina desde Multer en la carpeta de middlewares */
+        if (req.fileValidationError && err.errors.length) {
+          err.errors = [
+            ...err.errors,
+            { path: "images", message: req.fileValidationError },
+          ];
+        }
+
+        /* REMOVE FILES IMAGES */
+        if (req.files && err.errors?.length) {
+          req.files.map((file) =>
+            fs.unlinkSync(
+              path.join(
+                __dirname,
+                `../../public/images/products/${file.filename}`
+              )
+            )
+          );
+        }
+
+        sendJsonError(err, res);
+      });
   },
 
   // API -> UPDATE PRODUCT
   update: (req, res) => {
+    
+    const { name, description, price, discount, categoryId } = req.body;
+
     // Do the magic
     db.Product.update(
       {
-        ...req.body,
-        name: req.body.name.trim(),
-        description: req.body.description.trim(),
+        name: name?.trim(),
+      description: description?.trim(),
+      price,
+      discount,
+      categoryId,
       },
       {
         where: {
@@ -201,8 +204,53 @@ const controller = {
         },
       }
     )
-      .then(() => res.redirect("/products/detail/" + req.params.id))
-      .catch((error) => console.log(error));
+      .then((res) => {
+
+        if (req.files?.length) {
+          const images = req.files.map((img) => ({
+            file: img.filename,
+            productId: req.params.id,
+          }));
+
+          images.forEach(img => {
+            db.Image.findOrCreate({
+              where: { productId: req.params.id },
+              defaults: img
+            }).then(([user,created]) => {
+
+            });
+          });
+        }
+
+        res.status(200).json({
+          ok: true,
+          status: 200,
+        });
+      })
+
+      .catch((err) => {
+        /* Esta validación de archivos "images" se origina desde Multer en la carpeta de middlewares */
+        if (req.fileValidationError && err.errors?.length) {
+          err.errors = [
+            ...err.errors,
+            { path: "images", message: req.fileValidationError },
+          ];
+        }
+
+        /* REMOVE FILES IMAGES */
+        if (req.files && err.errors?.length) {
+          req.files.map((file) =>
+            fs.unlinkSync(
+              path.join(
+                __dirname,
+                `../../public/images/products/${file.filename}`
+              )
+            )
+          );
+        }
+
+       /*  sendJsonError(err, res); */
+      });
   },
 
   // API -> DELETE PRODUCT

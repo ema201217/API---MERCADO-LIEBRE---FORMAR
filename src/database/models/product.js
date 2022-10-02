@@ -1,20 +1,16 @@
 "use strict";
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
+  
+  const objectValidate = (args, msg) => ({ args, msg });
 
-
+  const defaultValidationsRequiredFields = {
+    notNull: objectValidate(true, "Campo requerido"),
+    notEmpty: objectValidate(true, "Campo requerido"),
+  };
 
   class Product extends Model {
-
-    static objectValidate(field, args, msg) {
-      return {
-        args,
-        msg: JSON.stringify({[field]:msg}),
-      };
-    }
-
     static associate(models) {
-      // define association here
       Product.hasMany(models.Image, {
         as: "images",
         foreignKey: "productId",
@@ -29,42 +25,72 @@ module.exports = (sequelize, DataTypes) => {
   }
   Product.init(
     {
+      /* NAME */
       name: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-          notNull: Product.objectValidate('name',true, "Nombre requerido").,
-          notEmpty: Product.objectValidate('name',true, "Nombre requerido"),
-          lenValid(value) {
+          /* objectValidate  --> FUNCTION LOCAL */
+          ...defaultValidationsRequiredFields,
+
+          /* CUSTOMS */
+          lengthValid(value) {
             if (value.length < 8) {
-             throw JSON.stringify({name:"Longitud minima no alcanzada"})
+              throw new Error("Longitud minima 8 caracteres");
             }
-            if (value.length > 200) {
-              throw JSON.stringify({name:"Longitud minima sobrepasada"})
+            if (value.length > 255) {
+              throw new Error("Longitud maxima 255 caracteres");
             }
           },
         },
-        
       },
-      price: DataTypes.INTEGER,
-      discount: DataTypes.INTEGER,
-      description: {
-        type: DataTypes.STRING,
+
+      /* PRICE */
+      price: {
+        type: DataTypes.INTEGER,
         allowNull: false,
         validate: {
-          notNull: Product.objectValidate(true, "Nombre requerido"),
-          notEmpty: Product.objectValidate(true, "Nombre requerido"),
-          lenValid(value) {
-            if (value.length < 8) {
-              throw JSON.stringify({description:"Longitud minima no alcanzada"});
-             }
-             if (value.length > 200) {
-              throw JSON.stringify({description:"Longitud minima sobrepasada"});
-             }
-          },
+          ...defaultValidationsRequiredFields,
+
+          /* objectValidate  --> FUNCTION LOCAL */
+          isInt: objectValidate(true, "Valor invalido"),
+          min: objectValidate(1, "No puede ser negativo"),
         },
       },
-      categoryId: DataTypes.INTEGER,
+
+      /* DISCOUNT */
+      discount: {
+        type: DataTypes.INTEGER,
+        validate: {
+          /* objectValidate  --> FUNCTION LOCAL */
+          isInt: objectValidate(true, "Valor invalido"),
+          min: objectValidate(1, "No puede ser negativo"),
+        },
+      },
+
+      /* DISCOUNT */
+      description: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          ...defaultValidationsRequiredFields,
+
+          /* objectValidate  --> FUNCTION LOCAL */
+          len: objectValidate([25], "Longitud minima 25 caracteres"),
+        },
+      },
+
+      /* CATEGORY ID */
+      categoryId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        validate: {
+          ...defaultValidationsRequiredFields,
+
+          /* objectValidate  --> FUNCTION LOCAL */
+          min: objectValidate(1, "categoryId invalido"),
+        },
+      },
     },
     {
       sequelize,

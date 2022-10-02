@@ -30,12 +30,11 @@ router.get("/image/:img", image)
 /*** STORAGE PRODUCT ***/
 router.post("/", uploadImageProduct.array("images"), store);
 
-
-
-
-
 /*** UPDATE PRODUCT ***/
-router.put("/:id", update);
+router.put("/:id",uploadImageProduct.array("images"), update);
+
+
+
 
 /*** DELETE PRODUCT ***/
 router.delete("/:id", destroy);
