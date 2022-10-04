@@ -5,9 +5,9 @@ const literalQueryUrlImage = (
   req,
   field,
   alias,
-  pathRoute = "/products/image/"
+  pathRoute = `/products/image/`
 ) => {
-  const urlImage = (req) => `${req.get("host")}${pathRoute}`;
+  const urlImage = (req) => `${req.protocol}://${req.get("host")}${pathRoute}`;
   /* field = campo */
   return [literal(`CONCAT( '${urlImage(req)}',${field})`), alias];
 };
@@ -16,9 +16,12 @@ const literalQueryUrlImage = (
 /* EJEMPLO: .catch(sendJsonError(res)) */
 
 /* 422: «Entidad no procesable«. La solicitud del cliente contiene errores semánticos, y el servidor no puede procesarla. */
-const sendJsonError = (err, res) => {
-  const status = err.name ? 422 : 500;
-
+const sendJsonError = (
+  err,
+  res,
+  prop = "errors",
+  codeStatus = err.name ? 422 : 500
+) => {
   // EXPLICACIÓN DE LA FUNCION
   /***
    * Recorremos el array que recibimos por argumento,
@@ -28,16 +31,17 @@ const sendJsonError = (err, res) => {
    * lógica del callback:
    * retornamos en un objecto donde hacemos propagación de los datos del acumulador (que es un objeto) y luego se coloca el nuevo error con el formato esperado  nombreCampo : mensaje
    */
+
   const mapped = (errors = []) =>
     errors.reduce(
       (acum, error) => ({ ...acum, [error.path]: error.message }),
       {}
     );
 
-  res.status(status).json({
+  return res.status(codeStatus).json({
     ok: false,
-    status,
-    errors: mapped(err.errors),
+    status: codeStatus,
+    [prop]: prop !== "errors" ? err : mapped(err.errors),
   });
 };
 

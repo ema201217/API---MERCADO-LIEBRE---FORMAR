@@ -1,28 +1,22 @@
-const db = require('../database/models');
+const path = require('path')
 
 module.exports = {
-    register : (req,res) => {
+  // API -> GET IMAGE IN VIEW
+  image: (req, res) => {
+    return res.sendFile(
+      path.join(__dirname, `../../public/images/avatars/`, req.params.img)
+    );
+  },
 
-    },
-    processRegister : (req,res) => {
+  update: (req, res) => {
 
-    },
-    login : (req,res) => {
+  },
+  
+  logout: (req, res) => {
 
-    },
-    processLogin : (req,res) => {
+  },
 
-    },
-    profile : (req,res) => {
+  remove: (req, res) => {
 
-    },
-    updateProfile : (req,res) => {
-
-    },
-    logout : (req,res) => {
-
-    },
-    remove : (req,res) => {
-        
-    }
-}
+  },
+};

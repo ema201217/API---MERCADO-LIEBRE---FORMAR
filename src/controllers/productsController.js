@@ -6,12 +6,12 @@ const fs = require("fs");
 const { literalQueryUrlImage, sendJsonError } = require("../helpers");
 
 const controller = {
-  // API -> GET IMAGE IN VIEW
-  image: (req, res) => {
-    return res.sendFile(
-      path.join(__dirname, "../../public/images/products", req.params.img)
-    );
-  },
+ // API -> GET IMAGE IN VIEW
+ image: (req, res) => {
+     return res.sendFile(
+       path.join(__dirname, `../../public/images/products`, req.params.img)
+     );
+ },
 
   // API -> ALL PRODUCTS + QUERIES
   all: (req, res) => {
@@ -59,12 +59,12 @@ const controller = {
       order: [["createdAt", "DESC"]],
     };
 
-    if (!!sales && !!newest) {
+    if (!!+sales && !!+newest) {
       /* 400: «Mala petición». El servidor no puede devolver una respuesta debido a un error del cliente. Vea nuestra guía para resolver este error. */
       throw new Error('"newest" and "sales" cannot be used at the same time');
-    } else if (!!sales) {
+    } else if (!!+sales) {
       options = optionsSales;
-    } else if (!!newest) {
+    } else if (!!+newest) {
       options = optionsNewest;
     }
 
@@ -155,7 +155,6 @@ const controller = {
             },
             data,
           });
-          // req.fileValidationError = "";
         });
       })
 
@@ -186,17 +185,16 @@ const controller = {
 
   // API -> UPDATE PRODUCT
   update: (req, res) => {
-    
     const { name, description, price, discount, categoryId } = req.body;
 
     // Do the magic
     db.Product.update(
       {
         name: name?.trim(),
-      description: description?.trim(),
-      price,
-      discount,
-      categoryId,
+        description: description?.trim(),
+        price,
+        discount,
+        categoryId,
       },
       {
         where: {
@@ -204,27 +202,23 @@ const controller = {
         },
       }
     )
-      .then((res) => {
-
+      .then(() => {
         if (req.files?.length) {
           const images = req.files.map((img) => ({
             file: img.filename,
-            productId: req.params.id,
+            productId: +req.params.id,
           }));
 
-          images.forEach(img => {
-            db.Image.findOrCreate({
-              where: { productId: req.params.id },
-              defaults: img
-            }).then(([user,created]) => {
-
-            });
-          });
+          db.Image.bulkCreate(images);
         }
-
-        res.status(200).json({
-          ok: true,
-          status: 200,
+        db.Product.findByPk(req.params.id, {
+          include: ["images"],
+        }).then((data) => {
+          return res.status(200).json({
+            ok: true,
+            status: 200,
+            data,
+          });
         });
       })
 
@@ -239,7 +233,7 @@ const controller = {
 
         /* REMOVE FILES IMAGES */
         if (req.files && err.errors?.length) {
-          req.files.map((file) =>
+          req.files?.map((file) =>
             fs.unlinkSync(
               path.join(
                 __dirname,
@@ -249,21 +243,36 @@ const controller = {
           );
         }
 
-       /*  sendJsonError(err, res); */
+        sendJsonError(err, res);
       });
   },
 
   // API -> DELETE PRODUCT
   destroy: (req, res) => {
     // Do the magic
+    const { id } = req.params;
 
     db.Product.destroy({
       where: {
-        id: req.params.id,
+        id,
       },
     })
-      .then(() => res.redirect("/products"))
-      .catch((error) => console.log(error));
+      .then(() => {
+        db.Image.destroy({
+          where: {
+            [Op.and]: [
+             { productId: id},
+              {deletedAt: {[Op.is]: null}}
+            ]
+          },
+        }).then(() => {
+          return res.status(200).json({
+            ok: true,
+            status: 200,
+          });
+        })
+      })
+      .catch((err) => sendJsonError(err, res));
   },
 };
 

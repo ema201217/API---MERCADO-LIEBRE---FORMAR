@@ -3,16 +3,20 @@ const express = require('express');
 const router = express.Router();
 
 // ************ Controller Require ************
-const {register, processRegister, login, processLogin, profile, updateProfile, logout, remove} = require('../controllers/usersController');
+const {update, logout, remove, image} = require('../controllers/usersController');
 
 router
-    .get('/register', register)
-    .post('/register', processRegister)
-    .get('/login', login)
-    .post('/login', processLogin)
-    .get('/profile',profile)
-    .put('/update',updateProfile)
+
+    /* UPDATE USER */
+    .put('/',update)
+
+    /* LOGOUT USER */
     .get('/logout',logout)
-    .delete('/remove',remove)
+
+    /* DELETE USER */
+    .delete('/',remove)
+
+    /* PREVIEW IMAGE */
+    .get("/image/:img", image)
 
 module.exports = router;

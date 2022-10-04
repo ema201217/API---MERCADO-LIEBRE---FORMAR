@@ -1,14 +1,9 @@
 "use strict";
 const { Model } = require("sequelize");
+
+const { defaultValidationsRequiredFields, objectValidate } = require("./validationsDefault");
+
 module.exports = (sequelize, DataTypes) => {
-  
-  const objectValidate = (args, msg) => ({ args, msg });
-
-  const defaultValidationsRequiredFields = {
-    notNull: objectValidate(true, "Campo requerido"),
-    notEmpty: objectValidate(true, "Campo requerido"),
-  };
-
   class Product extends Model {
     static associate(models) {
       Product.hasMany(models.Image, {
@@ -25,6 +20,8 @@ module.exports = (sequelize, DataTypes) => {
   }
   Product.init(
     {
+
+      /* datatypes y validations */
       /* NAME */
       name: {
         type: DataTypes.STRING,
@@ -68,7 +65,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
 
-      /* DISCOUNT */
+      /* DESCRIPTION */
       description: {
         type: DataTypes.INTEGER,
         allowNull: false,

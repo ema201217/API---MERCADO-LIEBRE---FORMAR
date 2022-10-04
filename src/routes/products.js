@@ -14,29 +14,29 @@ const {
   all,
   image
 } = require("../controllers/productsController");
+const { checkToken } = require("../middlewares/checkToken");
 
 /* /products */
 
 /*** GET ALL PRODUCTS ***/
 /* queries limit(number),offset(number),isSales(boolean),newest(boolean) */
-router.get("/", all);
+router
+
+.get("/", all)
 
 /*** GET ONE PRODUCT ***/
-router.get("/:id", detail);
-
-/* RENDER IMAGES DE PRODUCTS */
-router.get("/image/:img", image)
+.get("/:id", detail)
 
 /*** STORAGE PRODUCT ***/
-router.post("/", uploadImageProduct.array("images"), store);
+.post("/",checkToken, uploadImageProduct.array("images"), store)
 
 /*** UPDATE PRODUCT ***/
-router.put("/:id",uploadImageProduct.array("images"), update);
-
-
-
+.put("/:id",checkToken,uploadImageProduct.array("images"), update)
 
 /*** DELETE PRODUCT ***/
-router.delete("/:id", destroy);
+.delete("/:id",checkToken, destroy)
+
+/*** PREVIEW IMAGE ***/
+.get("/image/:img", image)
 
 module.exports = router;
