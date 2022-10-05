@@ -34,8 +34,6 @@ const sendJsonError = (
       responseErr = err
     }
 
-
-
   return res.status(codeStatus).json({
     ok: false,
     status: codeStatus,
