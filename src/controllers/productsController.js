@@ -6,12 +6,12 @@ const fs = require("fs");
 const { literalQueryUrlImage, sendJsonError } = require("../helpers");
 
 const controller = {
- // API -> GET IMAGE IN VIEW
- image: (req, res) => {
-     return res.sendFile(
-       path.join(__dirname, `../../public/images/products`, req.params.img)
-     );
- },
+  // API -> GET IMAGE IN VIEW
+  image: (req, res) => {
+    return res.sendFile(
+      path.join(__dirname, `../../public/images/products`, req.params.img)
+    );
+  },
 
   // API -> ALL PRODUCTS + QUERIES
   all: (req, res) => {
@@ -84,7 +84,12 @@ const controller = {
         })
       )
 
-      .catch((err) => sendJsonError(err, res));
+      .catch((err) => {
+        console.log("all start");
+        console.log(err);
+        console.log("all end");
+        sendJsonError(err, res)
+      });
   },
 
   // API -> DETAIL PRODUCT
@@ -117,7 +122,12 @@ const controller = {
         })
       )
 
-      .catch((err) => sendJsonError(err, res));
+      .catch((err) => {
+        console.log("detail start");
+        console.log(err);
+        console.log("detail end");
+        sendJsonError(err, res)
+      });
   },
 
   // API -> STORAGE PRODUCT
@@ -178,7 +188,9 @@ const controller = {
             )
           );
         }
-
+        console.log("store start");
+        console.log(err);
+        console.log("store end");
         sendJsonError(err, res);
       });
   },
@@ -243,6 +255,9 @@ const controller = {
           );
         }
 
+        console.log("update start");
+        console.log(err);
+        console.log("update end");
         sendJsonError(err, res);
       });
   },
@@ -260,19 +275,22 @@ const controller = {
       .then(() => {
         db.Image.destroy({
           where: {
-            [Op.and]: [
-             { productId: id},
-              {deletedAt: {[Op.is]: null}}
-            ]
+            [Op.and]: [{ productId: id }, { deletedAt: { [Op.is]: null } }],
           },
         }).then(() => {
           return res.status(200).json({
             ok: true,
             status: 200,
           });
-        })
+        });
       })
-      .catch((err) => sendJsonError(err, res));
+      .catch((err) => {
+        console.log("destroy start");
+        console.log(err);
+        console.log("destroy end");
+        sendJsonError(err, res)
+      
+      });
   },
 };
 

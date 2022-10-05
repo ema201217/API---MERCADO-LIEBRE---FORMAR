@@ -1,6 +1,6 @@
 const db = require("../database/models");
 const { hashSync, compareSync } = require("bcryptjs");
-const { createToken, sendJsonError, literalQueryUrlImage } = require("../helpers");
+const { createToken, sendJsonError } = require("../helpers");
 
 module.exports = {
   /* REGISTER CONTROLLER */
@@ -33,15 +33,16 @@ module.exports = {
       /* CONSTANTS */
       const { email, password } = req.body;
       const user = await db.User.findOne({ where: { email } });
+      
+      if (!user) {
+        return sendJsonError("El usuario no existe", res);
+      }
+      
       const { rolId } = user;
       const token = await createToken({ rolId, email });
 
-      if (!user) {
-        return sendJsonError("El usuario no existe", res, "error");
-      }
-
       if (!compareSync(password, user.password)) {
-        return sendJsonError("Credenciales invalidas", res, "error");
+        return sendJsonError("Credenciales invalidas", res);
       }
 
       return res.status(200).json({
@@ -70,7 +71,7 @@ module.exports = {
 
     } catch (error) {
 
-      sendJsonError("Error en el servidor", res, "error", 500);
+      sendJsonError("Error en el servidor", res);
     }
   },
   

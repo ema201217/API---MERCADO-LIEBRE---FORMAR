@@ -28,13 +28,13 @@ router
 .get("/:id", detail)
 
 /*** STORAGE PRODUCT ***/
-.post("/",checkToken, uploadImageProduct.array("images"), store)
-
-/*** UPDATE PRODUCT ***/
-.put("/:id",checkToken,uploadImageProduct.array("images"), update)
+.post("/",/* checkToken, */ uploadImageProduct.array("images"), store)
+/* 
+ *//*** UPDATE PRODUCT ***/
+.put("/:id",/* checkToken, */uploadImageProduct.array("images"), update)
 
 /*** DELETE PRODUCT ***/
-.delete("/:id",checkToken, destroy)
+.delete("/:id",/* checkToken, */ destroy)
 
 /*** PREVIEW IMAGE ***/
 .get("/image/:img", image)

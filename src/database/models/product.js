@@ -1,10 +1,26 @@
 "use strict";
 const { Model } = require("sequelize");
+const { objectValidate, defaultValidationsRequiredFields } = require("../resources/validationsDefault");
 
-const { defaultValidationsRequiredFields, objectValidate } = require("./validationsDefault");
 
-module.exports = (sequelize, DataTypes) => {
+module.exports = (sequelize, DataTypes) => {  
   class Product extends Model {
+
+    lengthValidator(     
+      value,
+      min = 8,
+      max = 255,
+      msgMin = `Longitud minima ${min} caracteres`,
+      msgMax = `Longitud maxima ${max} caracteres`
+    ) {
+      if (value.length < min) {
+        return new Error(msgMin);
+      }
+      if (value.length > max) {
+        return new Error(msgMax);
+      }
+    }
+
     static associate(models) {
       Product.hasMany(models.Image, {
         as: "images",

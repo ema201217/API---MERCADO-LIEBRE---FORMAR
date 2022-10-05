@@ -1,8 +1,9 @@
 const { createToken } = require("./createToken");
-const { literalQueryUrlImage, sendJsonError } = require("./general");
+const { literalQueryUrlImage } = require("./general");
+const { sendJsonError } = require("./sendJsonError");
 
 module.exports = {
   literalQueryUrlImage,
-  sendJsonError,
-  createToken
+  createToken,
+  sendJsonError
 };
