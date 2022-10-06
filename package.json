@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "reset-db": "sequelize db:migrate && sequelize db:seed:all",
-    "start": "npm run reset-db && nodemon ./src/bin/www"
+    "reset-db": "npx sequelize db:migrate && npx sequelize db:seed:all",
+    "start": "npm run reset-db && node ./src/bin/www"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
