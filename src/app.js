@@ -2,7 +2,7 @@
 require("dotenv").config();
 const express = require("express");
 const logger = require("morgan");
-
+const { sendJsonError } = require("./helpers");
 const app = express();
 
 /* Middleware */
@@ -11,13 +11,13 @@ app.use(logger("dev"));
 app.use(express.json());
 
 /* Routers */
-const mainRouter = require("./routes/main"); 
+// const mainRouter = require("./routes/main"); 
 const productsRouter = require("./routes/products"); 
 const authRouter = require("./routes/auth"); 
 const usersRouter = require("./routes/users");
 
 /* Routes */
-app.use("/", mainRouter); 
+// app.use("/", (req,res) => res.('/products')/* mainRouter */); 
 app.use("/products", productsRouter);
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
@@ -25,21 +25,12 @@ app.use("/users", usersRouter);
 
 /* Errors not found */
 app.use("*",(req, res) => {
-  res.status(404).json({
-    ok:false,
-    status:404,
-    msg:'Not found'
-  })
+  sendJsonError("Not found",res,404)
 });
 
-
+/* ERRORS SERVER */
 app.use((err, req, res, next) => {
-
-  res.status(err.status || 500).json({
-    ok: false,
-    status: err.status || 500,
-    msg: err.message
-  });
+  sendJsonError(err,res,500)
 });
 
 module.exports = app;

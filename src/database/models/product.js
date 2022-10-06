@@ -22,13 +22,13 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     static associate(models) {
-      Product.hasMany(models.Image, {
+      this.hasMany(models.Image, {
         as: "images",
         foreignKey: "productId",
         onDelete: "cascade",
       });
 
-      Product.belongsTo(models.Category, {
+      this.belongsTo(models.Category, {
         as: "category",
         foreignKey: "categoryId",
       });

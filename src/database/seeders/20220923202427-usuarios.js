@@ -7,7 +7,7 @@ const users = [
     surname : 'admin',
     email : 'admin@gmail.com',
     password : hashSync("123123",10),
-    avatar : null,
+    avatar : "default.png",
     rolId : 1,
     createdAt : new Date()
   },
@@ -16,7 +16,7 @@ const users = [
     surname : 'user',
     email : 'user@gmail.com',
     password : hashSync("123123",10),
-    avatar : null,
+    avatar : "default.png",
     rolId : 2,
     createdAt : new Date()
   },

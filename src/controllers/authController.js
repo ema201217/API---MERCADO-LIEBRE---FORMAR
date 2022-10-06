@@ -1,20 +1,30 @@
 const db = require("../database/models");
-const { hashSync, compareSync } = require("bcryptjs");
-const { createToken, sendJsonError } = require("../helpers");
+const { compareSync } = require("bcryptjs");
+const { createToken, sendJsonError,literalQueryUrlImage } = require("../helpers");
+const { ROL_USER } = require("../constants");
 
 module.exports = {
   /* REGISTER CONTROLLER */
   register: async (req, res) => {
     try {
-      const { name, surname, email, password } = req.body;
-      const { rolId } = await db.User.create({
+      const { name, surname, email, password, street, city, province } =
+        req.body;
+      const { rolId, id } = await db.User.create({
         name: name.trim(),
         surname: surname.trim(),
         email: email.trim(),
-        password: hashSync(password.trim()),
+        password: password.toString().trim(),
         avatar: req.file ? req.file.filename : "default.png",
-        rolId: 2,
+        rolId: ROL_USER,
+      })
+
+      await db.Address.create({
+        street: street || "",
+        city: city || "",
+        province: province || "",
+        userId: id,
       });
+
       const token = await createToken({ rolId, email });
 
       return res.status(201).json({
@@ -33,11 +43,11 @@ module.exports = {
       /* CONSTANTS */
       const { email, password } = req.body;
       const user = await db.User.findOne({ where: { email } });
-      
+
       if (!user) {
         return sendJsonError("El usuario no existe", res);
       }
-      
+
       const { rolId } = user;
       const token = await createToken({ rolId, email });
 
@@ -57,22 +67,25 @@ module.exports = {
 
   /* GET USER AUTHENTICATED */
   getUserAuthenticated: async (req, res) => {
+    /* OPTIONS --> PROPERTIES DEFAULT */
+    let otherOptions = {
+      include: ["addresses", "rol"],
+      attributes: {
+        exclude: ["deletedAt","password"],
+        include:[literalQueryUrlImage(req, "avatar", "url","users")] // users representa la ruta de la entidad donde vamos a visualizar la imagen  ejemplo /"users"/image/:img
+      },
+    };
+
     try {
       const { email } = req.userToken;
       const data = await db.User.findOne({
         where: { email },
-        attributes: { 
-          exclude: ["password"], 
-          include: [literalQueryUrlImage(req,"avatar","urlAvatar","/users/image/")]
-        },
+        ...otherOptions
       });
 
       return res.status(200).json({ ok: true, status: 200, data });
-
     } catch (error) {
-
       sendJsonError("Error en el servidor", res);
     }
   },
-  
 };

@@ -1,5 +1,7 @@
 const path = require('path')
 
+
+
 module.exports = {
   // API -> GET IMAGE IN VIEW
   image: (req, res) => {
