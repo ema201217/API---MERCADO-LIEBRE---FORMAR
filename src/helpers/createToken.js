@@ -11,7 +11,6 @@ const createToken = (data = {}) =>
           }
         }
       );
-
   });
 
 module.exports = { createToken };

@@ -25,7 +25,7 @@ module.exports = {
         userId: id,
       });
 
-      const token = await createToken({ rolId, email });
+      const token = await createToken({ rolId, id });
 
       return res.status(201).json({
         ok: true,
@@ -45,14 +45,14 @@ module.exports = {
       const user = await db.User.findOne({ where: { email } });
 
       if (!user) {
-        return sendJsonError("El usuario no existe", res);
+        return sendJsonError("El usuario no existe", res,404);
       }
 
-      const { rolId } = user;
-      const token = await createToken({ rolId, email });
+      const { rolId, id } = user;
+      const token = await createToken({ rolId, id });
 
       if (!compareSync(password, user.password)) {
-        return sendJsonError("Credenciales invalidas", res);
+        return sendJsonError("Credenciales invalidas", res,401);
       }
 
       return res.status(200).json({
@@ -68,7 +68,7 @@ module.exports = {
   /* GET USER AUTHENTICATED */
   getUserAuthenticated: async (req, res) => {
     /* OPTIONS --> PROPERTIES DEFAULT */
-    let otherOptions = {
+    let options = {
       include: ["addresses", "rol"],
       attributes: {
         exclude: ["deletedAt","password"],
@@ -77,13 +77,9 @@ module.exports = {
     };
 
     try {
-      const { email } = req.userToken;
-      const data = await db.User.findOne({
-        where: { email },
-        ...otherOptions
-      });
-
-      return res.status(200).json({ ok: true, status: 200, data });
+      const { id } = req.userToken;
+      const data = await db.User.findByPk(id,options);
+      res.status(200).json({ ok: true, status: 200, data });
     } catch (error) {
       sendJsonError("Error en el servidor", res);
     }
