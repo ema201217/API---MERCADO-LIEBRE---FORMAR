@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "reset-db": "npx sequelize-cli db:migrate:undo:all && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all",
-    "start": "npm run reset-db && node ./src/bin/www",
-    "dev": "nodemon ./src/bin/www"
+    "start": "node ./src/bin/www",
+    "dev": "npm run reset-db && nodemon ./src/bin/www"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
