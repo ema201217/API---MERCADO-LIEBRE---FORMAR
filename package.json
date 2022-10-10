@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "reset-db": "npx sequelize-cli db:migrate:undo:all && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all",
-    "start": "node ./src/bin/www",
+    "start": "npm run reset-db && node ./src/bin/www",
     "dev": "nodemon ./src/bin/www",
     "dev:reset" : "npm run reset-db && nodemon ./src/bin/www"
   },
