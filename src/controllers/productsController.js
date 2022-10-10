@@ -111,14 +111,13 @@ const controller = {
       /* PAGINATION */
       /* ********************************************* */
       /* ********************************************* */
-
       page = +page === 0 || isNaN(+page) ? 1 : +page;
-      offset = page && page * limit;
+      offset = page * limit;
       page -= 1;
 
       /* COMPROBAR SI EXISTE UNA PAGINA ANTERIOR O POSTERIOR */
       /* Si la pagina ingresada es mayor a cero y el offset menor o igual a la cantidad total de productos */
-      const existPrev = page > 0 && offset < count;
+      const existPrev = page > 0 && offset <= count;
       const existNext = Math.floor(count / limit) > page;
 
       /* PAGINA ANTERIOR */
@@ -126,22 +125,23 @@ const controller = {
       let next = null;
 
       /* OFFSET PREV Y NEXT */
-      const offsetPrev = offset - limit * (page > 1 ? page : page + 1);
+      const offsetPrev = offset - limit;
       const offsetNext = offset;
 
-      /* SI EXISTE PAGINADO ANTERIOR O SI NO EXISTE EL PAGINADO POSTERIOR */
-      if (existPrev || !existNext) {
-        prev = `${req.protocol}://${req.get("host")}${
-          req.baseUrl
-        }?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&sales=${sales}&salesDiscount=${salesDiscount}&offset=${offsetPrev}`;
-      }
-
+    
       /* SI HAY PAGINADO POSTERIOR */
       if (existNext) {
         next = `${req.protocol}://${req.get("host")}${req.baseUrl}?page=${
           page + 2
         }&limit=${limit}&sortBy=${sortBy}&order=${order}&sales=${sales}&salesDiscount=${salesDiscount}&offset=${offsetNext}`;
       }
+
+        /* SI EXISTE PAGINADO ANTERIOR O SI NO EXISTE EL PAGINADO POSTERIOR */
+        if (existPrev || !existNext) {
+          prev = `${req.protocol}://${req.get("host")}${
+            req.baseUrl
+          }?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&sales=${sales}&salesDiscount=${salesDiscount}&offset=${offsetPrev}`;
+        }
 
       /* ********************************************* */
       /* ********************************************* */
