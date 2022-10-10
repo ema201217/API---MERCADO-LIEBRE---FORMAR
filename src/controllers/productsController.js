@@ -22,14 +22,21 @@ const controller = {
       // Do the magic
       let {
         limit = 10,
-        sales = null,
+        sales = 0,
         order = "ASC",
         offset = 0,
         sortBy = "name",
         page = 1,
-        salesDiscount = 20,
+        salesDiscount = 10,
       } = req.query;
 
+      const queriesAvailable = {
+        limit,
+        order,
+        sortBy,
+        sales,
+        salesDiscount,
+      };
       /* ********************************************* */
       /* SORT BY Y ORDER */
       /* ********************************************* */
@@ -94,7 +101,7 @@ const controller = {
       /* ********************************************* */
       /* OFERTAS */
       /* ********************************************* */
-      if (sales || salesDiscount) {
+      if (+sales || +salesDiscount !== 10) {
         options = optionsSales;
       }
 
@@ -128,20 +135,23 @@ const controller = {
       const offsetPrev = offset - limit;
       const offsetNext = offset;
 
-    
-      /* SI HAY PAGINADO POSTERIOR */
-      if (existNext) {
-        next = `${req.protocol}://${req.get("host")}${req.baseUrl}?page=${
-          page + 2
-        }&limit=${limit}&sortBy=${sortBy}&order=${order}&sales=${sales}&salesDiscount=${salesDiscount}&offset=${offsetNext}`;
+      let urlQueries = "";
+      let queries = queriesAvailable;
+      for (const key in queries) {
+        urlQueries += `&${key}=${queries[key]}`;
       }
 
-        /* SI EXISTE PAGINADO ANTERIOR O SI NO EXISTE EL PAGINADO POSTERIOR */
-        if (existPrev || !existNext) {
-          prev = `${req.protocol}://${req.get("host")}${
-            req.baseUrl
-          }?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&sales=${sales}&salesDiscount=${salesDiscount}&offset=${offsetPrev}`;
-        }
+      /* SI HAY PAGINADO POSTERIOR */
+      if (existNext) {
+        next = `${req.protocol}://${req.get("host")}${req.baseUrl}?page=${page + 2}&offset=${offsetNext}${urlQueries}`;
+      }
+
+      /* SI EXISTE PAGINADO ANTERIOR O SI NO EXISTE EL PAGINADO POSTERIOR */
+      if (existPrev || !existNext) {
+        prev = `${req.protocol}://${req.get("host")}${
+          req.baseUrl
+        }?page=${page}&offset=${offsetPrev}${urlQueries}`;
+      }
 
       /* ********************************************* */
       /* ********************************************* */
