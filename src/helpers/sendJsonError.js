@@ -30,10 +30,8 @@ const sendJsonError = (
 
   if (err.errors && Array.isArray(err.errors)) {
     prop += "s";
-    responseErr = ""; // valor por defecto si hay un error pero no sabemos cual es
-
     // si en el primer objecto obtenido existe la propiedad path y message significa que es un error enviado por sequelize
-    if (err.name && err.name === "SequelizeValidationError") {
+    if (err.name && /sequelize/gi.test(err.name)) {
       responseErr = mapped(err.errors); // mapeamos el array de errores
     }
 

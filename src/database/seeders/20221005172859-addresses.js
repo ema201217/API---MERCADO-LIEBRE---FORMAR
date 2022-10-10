@@ -6,6 +6,7 @@ const addresses = [
     city: "",
     province: "",
     userId: 1,
+    active:true,
     createdAt: new Date(),
   },
   {
@@ -13,6 +14,7 @@ const addresses = [
     city: "",
     province: "",
     userId: 2,
+    active:true,
     createdAt: new Date(),
   },
 ];

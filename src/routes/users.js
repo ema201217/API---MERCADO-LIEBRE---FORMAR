@@ -1,22 +1,20 @@
 // ************ Require's ************
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
 // ************ Controller Require ************
-const {update, logout, remove, image} = require('../controllers/usersController');
+const { update, remove, image } = require("../controllers/usersController");
+const { checkToken, checkPermission } = require("../middlewares");
 
 router
 
-    /* UPDATE USER */
-    .put('/',update)
+  /* UPDATE USER */
+  .patch("/", checkToken, checkPermission, update)
 
-    /* LOGOUT USER */
-    .get('/logout',logout)
+  /* DELETE USER */
+  .delete("/:id?", checkToken, checkPermission, remove)
 
-    /* DELETE USER */
-    .delete('/',remove)
-
-    /* PREVIEW IMAGE */
-    .get("/image/:img", image)
+  /* PREVIEW IMAGE */
+  .get("/image/:img", image);
 
 module.exports = router;

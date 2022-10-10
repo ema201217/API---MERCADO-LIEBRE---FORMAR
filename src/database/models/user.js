@@ -7,8 +7,11 @@ const {
   objectValidate,
 } = require("../resources/validationsDefault");
 
+const regExAlphaEs = /^[ÁÉÍÓÚA-Z][a-záéíóú]+(\s+[ÁÉÍÓÚA-Z]?[a-záéíóú]+)*$/
+
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
+
     lengthValidator(
       value,
       min = 8,
@@ -22,7 +25,6 @@ module.exports = (sequelize, DataTypes) => {
       if (value.length > max) {
         throw new Error(msgMax);
       }
-      return;
     }
 
     existEmail(value) {
@@ -58,7 +60,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         validate: {
           /* ./helpers/general/objectValidate  --> FUNCTION LOCAL */
-          isAlpha: objectValidate(true, "Este campo debe contener solo letras"),
+          not: objectValidate(regExAlphaEs, "Este campo debe contener solo letras"),
 
           /* CUSTOMS */
           /* Len validator */

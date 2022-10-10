@@ -27,6 +27,7 @@ module.exports = {
         },
         onDelete: 'CASCADE'
       },
+      active: Sequelize.BOOLEAN,
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

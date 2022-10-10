@@ -1,6 +1,6 @@
 const path = require("path");
 const db = require("../database/models");
-const {} = require("sequelize");
+const { sendJsonError, literalQueryUrlImage } = require("../helpers");
 
 module.exports = {
   // API -> GET IMAGE IN VIEW
@@ -11,41 +11,77 @@ module.exports = {
   },
 
   update: async (req, res) => {
-    const { name, surname, street, city, province } = req.body;
-   /*  await db.User.beforeUpdate(
-      (user, options) => {
-        this.update(
-          {
-            name: name.trim() || user.name,
-            surname: surname.trim() || user.surname,
-            avatar: req.file ? req.file.filename : user.avatar,
-            rolId: ROL_USER,
+    const idUserToken = req.userToken.id; // lo obtenemos desde el middleware checkToken
+    const optionsUser = {
+      include: [
+        {
+          association: "addresses",
+          /* Buscamos en la asociación la dirección que vamos a modificar en este caso la que esta activa por el usuario */
+          /* where: { active: true }, */
+          attributes: {
+            exclude: ["createdAt", "deletedAt", "updatedAt", "userId"],
           },
-          options
-        );
-      },
-      {
-        where: {
-          id: req.userToken.id, // middleware checkToken
         },
-      }
-    );
+      ],
+      attributes: {
+        exclude: ["password", "deletedAt", "updatedAt"],
+        include: [literalQueryUrlImage(req, "avatar", "avatar", "users")],
+      },
+    };
 
-    await db.Address.update(
-      {
-        street: street || "",
-        city: city || "",
-        province: province || "",
-      },
-      {
-        where: {
-          userId: req.userToken.id, // middleware checkToken
-        },
-      }
-    ); */
+    try {
+      const { name, surname, street, city, province } = req.body;
+
+      const user = await db.User.findByPk(idUserToken, optionsUser);
+
+      /* Buscamos el indice de la dirección activa */
+      const indexAddressActive = user.addresses.findIndex(
+        (address) => address.active === true
+      );
+
+      const address = user.addresses[indexAddressActive];
+
+      /* user */
+      user.name = name || user.name;
+      user.surname = surname || user.surname;
+      user.avatar = req.file?.filename || user.avatar;
+
+      /* address */
+      address.street = street || address.street;
+      address.city = city || address.city;
+      address.province = province || address.province;
+
+      await user.save();
+      await address.save();
+
+      return res.status(200).json({
+        ok: true,
+        status: 200,
+        data: user,
+      });
+    } catch (err) {
+      return sendJsonError(err, res);
+    }
   },
 
-  logout: (req, res) => {},
+  remove: async (req, res) => {
+  
+      const idUser = req.params.id || req.userToken.id;
 
-  remove: (req, res) => {},
+      const removeUser = await db.User.destroy({ where: { id: idUser } });
+      const removeAddresses = await db.Address.destroy({
+        where: { userId: idUser },
+      });
+
+      if (!removeUser || !removeAddresses) {
+        return sendJsonError("Es probable que el usuario no exista", res,404);
+      }else{
+        res.status(200).json({
+          ok: true,
+          status: 200,
+        });
+      }
+
+   
+  },
 };

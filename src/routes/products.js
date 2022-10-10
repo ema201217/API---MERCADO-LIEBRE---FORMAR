@@ -3,7 +3,8 @@ const express = require("express");
 const router = express.Router();
 
 // ************ Middlewares Require ************
-const { uploadImageProduct } = require("../middlewares/uploadFiles");
+const { uploadImageProduct } = require("../middlewares");
+
 
 // ************ Controller Require ************
 const {
@@ -31,7 +32,7 @@ router
 .post("/",/* checkToken, */ uploadImageProduct.array("images"), store)
 /* 
  *//*** UPDATE PRODUCT ***/
-.put("/:id",/* checkToken, */uploadImageProduct.array("images"), update)
+.patch("/:id",/* checkToken, */uploadImageProduct.array("images"), update)
 
 /*** DELETE PRODUCT ***/
 .delete("/:id",/* checkToken, */ destroy)

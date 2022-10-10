@@ -1,12 +1,13 @@
 "use strict";
 const { Model } = require("sequelize");
-const { objectValidate, defaultValidationsRequiredFields } = require("../resources/validationsDefault");
+const {
+  objectValidate,
+  defaultValidationsRequiredFields,
+} = require("../resources/validationsDefault");
 
-
-module.exports = (sequelize, DataTypes) => {  
+module.exports = (sequelize, DataTypes) => {
   class Product extends Model {
-
-    lengthValidator(     
+    lengthValidator(
       value,
       min = 8,
       max = 255,
@@ -14,18 +15,17 @@ module.exports = (sequelize, DataTypes) => {
       msgMax = `Longitud maxima ${max} caracteres`
     ) {
       if (value.length < min) {
-        return new Error(msgMin);
+        throw new Error(msgMin);
       }
       if (value.length > max) {
-        return new Error(msgMax);
+        throw new Error(msgMax);
       }
     }
-
     static associate(models) {
       this.hasMany(models.Image, {
         as: "images",
         foreignKey: "productId",
-        onDelete: "cascade",
+        onDelete: "CASCADE",
       });
 
       this.belongsTo(models.Category, {
@@ -36,7 +36,6 @@ module.exports = (sequelize, DataTypes) => {
   }
   Product.init(
     {
-
       /* datatypes y validations */
       /* NAME */
       name: {
@@ -47,13 +46,8 @@ module.exports = (sequelize, DataTypes) => {
           ...defaultValidationsRequiredFields,
 
           /* CUSTOMS */
-          lengthValid(value) {
-            if (value.length < 8) {
-              throw new Error("Longitud minima 8 caracteres");
-            }
-            if (value.length > 255) {
-              throw new Error("Longitud maxima 255 caracteres");
-            }
+          name2(value) {
+            this.lengthValidator(value, 5, 30);
           },
         },
       },
@@ -99,7 +93,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         validate: {
           ...defaultValidationsRequiredFields,
-
+          isInt: objectValidate(true,"categoryId invalido"),
           /* objectValidate  --> FUNCTION LOCAL */
           min: objectValidate(1, "categoryId invalido"),
         },

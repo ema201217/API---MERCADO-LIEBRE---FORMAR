@@ -17,7 +17,7 @@ module.exports = {
           },
           key: "id",
         },
-        onDelete: "cascade",
+        onDelete: "CASCADE",
       },
       createdAt: {
         allowNull: false,
