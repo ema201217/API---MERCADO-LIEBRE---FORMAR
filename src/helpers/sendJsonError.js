@@ -9,14 +9,14 @@ retornamos en un objecto donde hacemos propagación de los datos del acumulador 
 */
 const mapped = (errors = []) =>
   errors.reduce(
-    (acum, {path,message}) => ({
+    (acum, { path, message }) => ({
       ...acum,
       [path]: message,
     }),
     {}
   );
 
-// 422: <<Entidad no procesable>>. La solicitud del cliente contiene errores semánticos, y el servidor no puede procesarla. 
+// 422: <<Entidad no procesable>>. La solicitud del cliente contiene errores semánticos, y el servidor no puede procesarla.
 const sendJsonError = (
   err,
   res,
@@ -24,9 +24,9 @@ const sendJsonError = (
 ) => {
   let prop = "error",
     responseErr = "";
-
-  // Funcion que mapea un array de objetos
-  // example -->  [{ email : "Campo requerido" },{password : "Credenciales invalidas"}]
+    
+    // Funcion que mapea un array de objetos
+    // example -->  [{ email : "Campo requerido" },{password : "Credenciales invalidas"}]
 
   if (err.errors && Array.isArray(err.errors)) {
     prop += "s";
@@ -39,7 +39,7 @@ const sendJsonError = (
   } else if (err.message) {
     responseErr = err.message;
   } else {
-    responseErr = err; // si colocamos un string 
+    responseErr = err; // si colocamos un string
   }
 
   return res.status(codeStatus).json({
@@ -51,4 +51,4 @@ const sendJsonError = (
 
 module.exports = {
   sendJsonError,
-}; 
+};

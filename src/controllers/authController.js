@@ -27,6 +27,19 @@ module.exports = {
         rolId: ROL_USER,
       });
 
+      /* Si existe un error en el tipo de archivo */
+      if (req.fileValidationError) {
+        throw {
+          name: "sequelize",
+          errors: [
+            {
+              path: "avatar",
+              message: req.fileValidationError,
+            },
+          ],
+        };
+      }
+
       /* Creamos la dirección */
       await db.Address.create({
         street: street?.trim(),

@@ -46,6 +46,20 @@ module.exports = {
       user.surname = surname || user.surname;
       user.avatar = req.file?.filename || user.avatar;
 
+      
+      /* Si existe un error en el tipo de archivo */
+      if (req.fileValidationError) {
+        throw {
+          name: "sequelize",
+          errors: [
+            {
+              path: "avatar",
+              message: req.fileValidationError,
+            },
+          ],
+        };
+      }
+
       /* address */
       address.street = street || address.street;
       address.city = city || address.city;
@@ -65,7 +79,7 @@ module.exports = {
   },
 
   remove: async (req, res) => {
-  
+    try {
       const idUser = req.params.id || req.userToken.id;
 
       const removeUser = await db.User.destroy({ where: { id: idUser } });
@@ -74,14 +88,16 @@ module.exports = {
       });
 
       if (!removeUser || !removeAddresses) {
-        return sendJsonError("Es probable que el usuario no exista", res,404);
-      }else{
-        res.status(200).json({
-          ok: true,
-          status: 200,
-        });
+        return sendJsonError("Es probable que el usuario no exista", res, 404);
       }
 
-   
+      return res.status(200).json({
+        ok: true,
+        status: 200,
+      });
+      
+    } catch (err) {
+      sendJsonError(err, res);
+    }
   },
 };

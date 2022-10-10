@@ -13,6 +13,9 @@ const controller = {
     );
   },
 
+  // API --> SEARCH PRODUCTS
+  search: (req, res) => {},
+
   // API -> ALL PRODUCTS + QUERIES
   all: async (req, res) => {
     try {
@@ -207,15 +210,28 @@ const controller = {
         categoryId: +categoryId,
       });
 
+      let images = [{ productId: id }];
       if (req.files?.length) {
-        const images = req.files.map(({ filename }) => {
+        images = req.files.map(({ filename }) => {
           return {
             file: filename,
             productId: id,
           };
         });
+      }
+      await db.Image.bulkCreate(images, { validator: true });
 
-        await db.Image.bulkCreate(images);
+      /* Si existe un error en el tipo de archivo */
+      if (req.fileValidationError) {
+        throw {
+          name: "sequelize",
+          errors: [
+            {
+              path: "images",
+              message: req.fileValidationError,
+            },
+          ],
+        };
       }
 
       /* 201: «Creado». El servidor ha cumplido con la petición del navegador y, como resultado, ha creado un nuevo recurso. */
@@ -228,16 +244,10 @@ const controller = {
       });
     } catch (err) {
       /* Esta validación de archivos "images" se origina desde Multer en la carpeta de middlewares */
-      if (req.fileValidationError && err.errors.length) {
-        err.errors = [
-          ...err.errors,
-          { path: "images", message: req.fileValidationError },
-        ];
-      }
 
       /* REMOVE FILES IMAGES */
       if (req.files && err.errors?.length) {
-        req.files.map((file) =>
+        req.files.forEach((file) =>
           fs.unlinkSync(
             path.join(
               __dirname,

@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 
 // ************ Middlewares Require ************
-const { uploadImageProduct } = require("../middlewares");
+const { uploadImageProduct, checkPermission } = require("../middlewares");
 
 
 // ************ Controller Require ************
@@ -20,7 +20,15 @@ const { checkToken } = require("../middlewares/checkToken");
 /* /products */
 
 /*** GET ALL PRODUCTS ***/
-/* queries limit(number),offset(number),isSales(boolean),newest(boolean) */
+/* queries: --> 
+limit(number),
+offset(number),
+page(number)
+sales(boolean),
+sort(string)
+sortBy(string) 
+          <--
+*/
 router
 
 .get("/", all)
@@ -29,13 +37,13 @@ router
 .get("/:id", detail)
 
 /*** STORAGE PRODUCT ***/
-.post("/",/* checkToken, */ uploadImageProduct.array("images"), store)
+.post("/",checkToken,checkPermission, uploadImageProduct.array("images"), store)
 /* 
  *//*** UPDATE PRODUCT ***/
-.patch("/:id",/* checkToken, */uploadImageProduct.array("images"), update)
+.patch("/:id",checkToken, checkPermission, uploadImageProduct.array("images"), update)
 
 /*** DELETE PRODUCT ***/
-.delete("/:id",/* checkToken, */ destroy)
+.delete("/:id", checkToken, checkPermission, destroy)
 
 /*** PREVIEW IMAGE ***/
 .get("/image/:img", image)

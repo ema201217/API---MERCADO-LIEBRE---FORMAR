@@ -7,6 +7,7 @@ const {
 
 module.exports = (sequelize, DataTypes) => {
   class Product extends Model {
+  
     lengthValidator(
       value,
       min = 8,
@@ -21,6 +22,7 @@ module.exports = (sequelize, DataTypes) => {
         throw new Error(msgMax);
       }
     }
+
     static associate(models) {
       this.hasMany(models.Image, {
         as: "images",
@@ -46,7 +48,7 @@ module.exports = (sequelize, DataTypes) => {
           ...defaultValidationsRequiredFields,
 
           /* CUSTOMS */
-          name2(value) {
+          name(value) {
             this.lengthValidator(value, 5, 30);
           },
         },

@@ -9,16 +9,16 @@ const checkPermission = (req, res, next) => {
     if (idUserParams) {
       if (isNaN(idUserParams)) {
         return sendJsonError("Parámetro invalido", res);
-      } else if (+id !== +idUserParams) {
-        return sendJsonError("No tiene permisos necesarios", res);
+      } else if (id != idUserParams && rolId !== ROL_ADMIN) {
+        return sendJsonError("No tiene los permisos necesarios", res);
       } else {
         return next();
       }
     }
 
-    if (rolId !== ROL_ADMIN || id !== idUserParams) {
-      return sendJsonError("No tiene permisos", res);
-    }else{
+    if (rolId !== ROL_ADMIN) {
+      return sendJsonError("No tiene los permisos necesarios", res);
+    } else {
       return next();
     }
 

@@ -23,8 +23,8 @@ const folder = path.join(__dirname,`../../public/images/${entity}` )
 
   const fileFilter = (req, file, callback) => {
     if (!/image\//.test(file.mimetype)) {
-      req.fileValidationError = "Archivo invalido";
-      return callback(null, false, new Error("Archivo invalido"));
+    req.fileValidationError = "Archivo invalido";
+      return callback(null, false);
     }
     callback(null, true);
   };

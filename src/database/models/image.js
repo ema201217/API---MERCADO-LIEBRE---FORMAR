@@ -1,12 +1,9 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
-
-
+"use strict";
+const { Model } = require("sequelize");
+const path = require("path");
+const { objectValidate } = require("../resources/validationsDefault");
 module.exports = (sequelize, DataTypes) => {
   class Image extends Model {
- 
     static associate(models) {
       // define association here
       Image.belongsTo(models.Product, {
@@ -16,15 +13,28 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
   }
-  Image.init({
-    file: DataTypes.STRING,
-    productId: DataTypes.INTEGER,
-    deletedAt:DataTypes.DATE
-  }, {
-    sequelize,
-    modelName: 'Image',
-    paranoid: true
-  });
-  
+  Image.init(
+    {
+      file: {
+        type:DataTypes.STRING,
+        validate: {
+          /* file(value){
+            if(!/[.png|.jpg|.jpeg|.webp]/ig.test(value)){
+              throw new Error("Archivo invalido")
+            }
+          }, */
+          not:objectValidate(/[.png|.jpg|.jpeg|.webp]/,"Error de archivo")
+        }
+      },
+      productId: DataTypes.INTEGER,
+      deletedAt: DataTypes.DATE,
+    },
+    {
+      sequelize,
+      modelName: "Image",
+      paranoid: true,
+    }
+  );
+
   return Image;
 };
