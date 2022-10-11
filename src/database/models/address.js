@@ -1,8 +1,5 @@
 "use strict";
 const { Model } = require("sequelize");
-const { objectValidate } = require("../resources/validationsDefault");
-
-const regExAlphaEs = /^[ÁÉÍÓÚA-Z][a-záéíóú]+(\s+[ÁÉÍÓÚA-Z]?[a-záéíóú]+)*$/;
 
 module.exports = (sequelize, DataTypes) => {
   class Address extends Model {

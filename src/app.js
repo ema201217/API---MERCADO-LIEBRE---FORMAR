@@ -11,13 +11,11 @@ app.use(logger("dev"));
 app.use(express.json());
 
 /* Routers */
-// const mainRouter = require("./routes/main"); 
 const productsRouter = require("./routes/products"); 
 const authRouter = require("./routes/auth"); 
 const usersRouter = require("./routes/users");
 
 /* Routes */
-// app.use("/", (req,res) => res.('/products')/* mainRouter */); 
 app.use("/products", productsRouter);
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);

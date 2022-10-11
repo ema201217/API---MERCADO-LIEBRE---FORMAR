@@ -28,14 +28,17 @@ const controller = {
         sortBy = "name",
         page = 1,
         salesDiscount = 10,
+        search = search?.toLowerCase() || null,
       } = req.query;
 
-      const queriesAvailable = {
+      /* Valores que se utilizaran en la url y no sufren modificaciones lógicas */
+      const queriesValuesDefaultAndModify = {
         limit,
         order,
         sortBy,
         sales,
         salesDiscount,
+        search,
       };
       /* ********************************************* */
       /* SORT BY Y ORDER */
@@ -60,13 +63,24 @@ const controller = {
       /* ********************************************* */
       /* ********************************************* */
 
+      /* ********************************************* */
+      /* ********************************************* */
+      /*                 PAGINATION                    */
+      /* ********************************************* */
+      /* ********************************************* */
+
       /* Si el LIMIT es muy alto */
       limit = +limit > 20 ? 10 : +limit;
+      /* Si la pagina es menor o igual a cero o si no es un numero */
+      page = +page <= 0 || isNaN(+page) ? 1 : +page;
+      /* luego restamos a la pagina un uno para que la multiplicación sea correcta ya que el offset comenzaría en 0 y no en 1 */
+      page -= 1;
+      offset = page * limit;
 
       /* OPTIONS --> PROPERTIES DEFAULT */
       let options = {
-        limit: !isNaN(limit) ? limit : 16,
-        offset: !isNaN(offset) ? +offset : 0,
+        limit,
+        offset,
         attributes: {
           exclude: ["updatedAt", "deletedAt"],
         },
@@ -85,6 +99,25 @@ const controller = {
             },
           },
         ],
+        where: {
+          [Op.or]: [
+            {
+              name: {
+                [Op.substring]: search,
+              },
+            },
+            {
+              description: {
+                [Op.substring]: search,
+              },
+            },
+            /* {
+             ["$category.name$"]: {
+                [Op.substring]: search,
+              },
+            }, */
+          ],
+        },
         order: orderQuery,
       };
 
@@ -113,14 +146,13 @@ const controller = {
         options
       );
 
-      /* ********************************************* */
-      /* ********************************************* */
-      /* PAGINATION */
-      /* ********************************************* */
-      /* ********************************************* */
-      page = +page === 0 || isNaN(+page) ? 1 : +page;
-      offset = page * limit;
-      page -= 1;
+      if (!products.length) {
+        return res.status(200).json({
+          ok: true,
+          status: 204,
+          message: "No hay productos en esta pagina",
+        });
+      }
 
       /* COMPROBAR SI EXISTE UNA PAGINA ANTERIOR O POSTERIOR */
       /* Si la pagina ingresada es mayor a cero y el offset menor o igual a la cantidad total de productos */
@@ -135,15 +167,18 @@ const controller = {
       const offsetPrev = offset - limit;
       const offsetNext = offset;
 
+      /* QUERIES DINÁMICAS */
       let urlQueries = "";
-      let queries = queriesAvailable;
+      let queries = queriesValuesDefaultAndModify;
       for (const key in queries) {
         urlQueries += `&${key}=${queries[key]}`;
       }
 
       /* SI HAY PAGINADO POSTERIOR */
       if (existNext) {
-        next = `${req.protocol}://${req.get("host")}${req.baseUrl}?page=${page + 2}&offset=${offsetNext}${urlQueries}`;
+        next = `${req.protocol}://${req.get("host")}${req.baseUrl}?page=${
+          page + 2
+        }&offset=${offsetNext}${urlQueries}`;
       }
 
       /* SI EXISTE PAGINADO ANTERIOR O SI NO EXISTE EL PAGINADO POSTERIOR */
@@ -190,16 +225,25 @@ const controller = {
             exclude: ["createdAt", "updatedAt", "deletedAt", "productId", "id"],
           },
         },
+        {
+          association: "category",
+          attributes: {
+            exclude: ["createdAt", "updatedAt", "deletedAt", "id"],
+          },
+        },
       ],
     };
 
     try {
       const data = await db.Product.findByPk(req.params.id, options);
+
+      if (!data) {
+        return sendJsonError("El producto no existe", res, 404);
+      }
+
       return res.status(200).json({
-        meta: {
-          ok: true,
-          status: 200,
-        },
+        ok: true,
+        status: 200,
         data,
       });
     } catch (err) {

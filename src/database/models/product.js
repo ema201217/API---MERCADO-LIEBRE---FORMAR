@@ -49,7 +49,7 @@ module.exports = (sequelize, DataTypes) => {
 
           /* CUSTOMS */
           name(value) {
-            this.lengthValidator(value, 5, 30);
+            this.lengthValidator(value, 5, 100);
           },
         },
       },

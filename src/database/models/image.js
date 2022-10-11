@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
               throw new Error("Archivo invalido")
             }
           }, */
-          not:objectValidate(/[.png|.jpg|.jpeg|.webp]/,"Error de archivo")
+          not:objectValidate(/[.png|.jpg|.jpeg|.webp]/ig,"Error de archivo")
         }
       },
       productId: DataTypes.INTEGER,
