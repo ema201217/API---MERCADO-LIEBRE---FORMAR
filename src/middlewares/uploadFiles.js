@@ -2,11 +2,11 @@ const multer = require("multer");
 const fs = require('fs')
 const path = require('path');
 
+
 const createStorage = (
   entityOrFolderName = "products"
 ) => {
 const folder = path.join(__dirname,`../../public/images/${entityOrFolderName}` )
-
 /* Si la carpeta no existe la crea */
   if(!fs.existsSync(folder)){
     fs.mkdirSync(folder)
@@ -23,8 +23,7 @@ const folder = path.join(__dirname,`../../public/images/${entityOrFolderName}` )
 
 /*   const fileFilter = (req, file, callback) => {
     if (!/image/.test(file.mimetype)) {
-    // req.fileValidationError = "Archivo invalido";
-      return callback(null, false);
+      return callback(new Error('Archivo invalido'), false);
     }
     callback(null, true);
   }; */
