@@ -13,8 +13,9 @@ const checkToken = async (req, res, next) => {
     req.userToken = decoded;
 
   } catch (err) {
-    /* 500: «Hubo un error en el servidor y la solicitud no pudo ser completada» */
-    return sendJsonError("El token es invalido", res, 500);
+    console.log(err.message);
+    /* 403 «El acceso a ese recurso está prohibido» */
+    return sendJsonError("El token es invalido", res, 403);
   }
   next();
 };

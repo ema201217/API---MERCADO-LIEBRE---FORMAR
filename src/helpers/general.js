@@ -4,14 +4,15 @@ const { literal } = require("sequelize");
 const literalQueryUrlImage = (
   req,
   field,
-  alias,
-  pathRouteView = 'products'
+  alias = field,
+  pathRoute = req.baseUrl
 ) => {
-  const urlImage = (req) => `${req.protocol}://${req.get("host")}/${pathRouteView}/image/`;
+  const urlImage = (req) =>
+    `${req.protocol}://${req.get("host")}${pathRoute[0] === '/' ? pathRoute : `/${pathRoute}`}/image/`;
   /* field = campo */
   return [literal(`CONCAT( '${urlImage(req)}',${field})`), alias];
 };
 
 module.exports = {
-  literalQueryUrlImage
-}
+  literalQueryUrlImage,
+};

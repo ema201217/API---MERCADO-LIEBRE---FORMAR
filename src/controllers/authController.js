@@ -14,7 +14,11 @@ module.exports = {
     try {
       /* Si el email o el pass no existe */
       if (!email || !password) {
-        return sendJsonError("El email y la contraseña son requeridos", res);
+        return sendJsonError(
+          "El email y la contraseña son requeridos",
+          res,
+          401
+        );
       }
 
       /* Creamos el usuario */
@@ -26,19 +30,6 @@ module.exports = {
         avatar: req.file?.filename || "default.png",
         rolId: ROL_USER,
       });
-
-      /* Si existe un error en el tipo de archivo */
-      if (req.fileValidationError) {
-        throw {
-          name: "sequelize",
-          errors: [
-            {
-              path: "avatar",
-              message: req.fileValidationError,
-            },
-          ],
-        };
-      }
 
       /* Creamos la dirección */
       await db.Address.create({
@@ -107,7 +98,7 @@ module.exports = {
   /* GET USER AUTHENTICATED */
   getUserAuthenticated: async (req, res) => {
     /* OPTIONS --> PROPERTIES DEFAULT */
-    let options = {
+    const options = {
       include: [
         {
           association: "addresses",
@@ -118,12 +109,12 @@ module.exports = {
       ],
       attributes: {
         exclude: ["deletedAt", "password"],
-        include: [literalQueryUrlImage(req, "avatar", "avatar", "users")], // users representa la ruta de la entidad donde vamos a visualizar la imagen  ejemplo /"users"/image/:img
+        include: [literalQueryUrlImage(req, "avatar", "avatar","users")], // users representa la ruta de la entidad donde vamos a visualizar la imagen  ejemplo /"users"/image/:img
       },
     };
 
     try {
-      const { id } = req.userToken;
+      const { id } = req.userToken; 
       /* Buscamos el usuario con el id que nos trae dentro el token */
       const data = await db.User.findByPk(id, options);
       /* Enviamos respuesta */

@@ -4,7 +4,11 @@ const router = express.Router();
 
 // ************ Controller Require ************
 const { update, remove, image } = require("../controllers/usersController");
-const { checkToken, checkPermission } = require("../middlewares");
+const {
+  checkToken,
+  checkPermission,
+  preventAdminSelfRemoval,
+} = require("../middlewares");
 
 router
 
@@ -12,9 +16,9 @@ router
   .patch("/", checkToken, checkPermission, update)
 
   /* DELETE USER */
-  .delete("/:id?", checkToken, checkPermission, remove)
+  .delete("/:id?", checkToken, checkPermission, preventAdminSelfRemoval, remove)
 
   /* PREVIEW IMAGE */
-  .get("/image/:img", image);
+  .get("/image/:img", checkToken, image);
 
 module.exports = router;

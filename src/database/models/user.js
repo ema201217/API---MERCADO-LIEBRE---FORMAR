@@ -1,17 +1,16 @@
 "use strict";
 const { hashSync } = require("bcryptjs");
 const { Model } = require("sequelize");
+const fs = require('fs')
+const path = require('path')
 const { ROL_USER } = require("../../constants");
 const {
   defaultValidationsRequiredFields,
   objectValidate,
 } = require("../resources/validationsDefault");
 
-const regExAlphaEs = /^[ÁÉÍÓÚA-Z][a-záéíóú]+(\s+[ÁÉÍÓÚA-Z]?[a-záéíóú]+)*$/
-
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
-
     lengthValidator(
       value,
       min = 8,
@@ -43,6 +42,7 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(models.Address, {
         foreignKey: "userId",
         as: "addresses",
+        onDelete: "CASCADE",
       });
       /* Tiene un rol */
       this.belongsTo(models.Rol, {
@@ -59,12 +59,14 @@ module.exports = (sequelize, DataTypes) => {
       name: {
         type: DataTypes.STRING,
         validate: {
-          /* ./helpers/general/objectValidate  --> FUNCTION LOCAL */
-          not: objectValidate(regExAlphaEs, "Este campo debe contener solo letras"),
-
           /* CUSTOMS */
+          isString(value) {
+            if (/[0-9]/.test(value)) {
+              throw new Error("Este campo debe tener solo letras");
+            }
+          },
           /* Len validator */
-          name(value) {
+          length(value) {
             this.lengthValidator(value, 5, 30);
           },
         },
@@ -74,8 +76,16 @@ module.exports = (sequelize, DataTypes) => {
       surname: {
         type: DataTypes.STRING,
         validate: {
-          /* objectValidate  --> FUNCTION LOCAL */
-          isAlpha: objectValidate(true, "Este campo debe contener solo letras"),
+          /* CUSTOMS */
+          isString(value) {
+            if (/[0-9]/.test(value)) {
+              throw new Error("Este campo debe tener solo letras");
+            }
+          },
+          /* Len validator */
+          length(value) {
+            this.lengthValidator(value, 5, 30);
+          },
         },
       },
 
@@ -87,7 +97,7 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           ...defaultValidationsRequiredFields,
 
-          // isEmail: objectValidate(true,"Ingrese un email valido"),
+          isEmail: objectValidate(true, "Ingrese un email valido"),
           // CUSTOMS
           async email(value) {
             const exist = await this.existEmail(value);
@@ -102,7 +112,6 @@ module.exports = (sequelize, DataTypes) => {
       password: {
         type: DataTypes.STRING,
         allowNull: false,
-
         validate: {
           ...defaultValidationsRequiredFields,
 
@@ -125,9 +134,12 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         defaultValue: "default.png",
         validate: {
-          // isInt: objectValidate(true, ""),
-          //   /* objectValidate  --> FUNCTION LOCAL */
-          //   len: objectValidate([25], "Longitud minima 25 caracteres"),
+          isImage(value){
+            if(!/.png|.jpg|.jpeg|.webp/i.test(value)){
+              fs.unlinkSync(path.join(__dirname,`../../../public/images/avatars/${value}`))
+              throw new Error('Archivo invalido desde validación sequelize')
+            }
+          }
         },
       },
 

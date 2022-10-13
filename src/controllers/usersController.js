@@ -12,7 +12,7 @@ module.exports = {
 
   update: async (req, res) => {
     const idUserToken = req.userToken.id; // lo obtenemos desde el middleware checkToken
-    const optionsUser = {
+    const options = {
       include: [
         {
           association: "addresses",
@@ -25,14 +25,14 @@ module.exports = {
       ],
       attributes: {
         exclude: ["password", "deletedAt", "updatedAt"],
-        include: [literalQueryUrlImage(req, "avatar", "avatar", "users")],
+        include: [literalQueryUrlImage(req, "avatar", "avatar")],
       },
     };
 
     try {
       const { name, surname, street, city, province } = req.body;
 
-      const user = await db.User.findByPk(idUserToken, optionsUser);
+      const user = await db.User.findByPk(idUserToken, options);
 
       /* Buscamos el indice de la dirección activa */
       const indexAddressActive = user.addresses.findIndex(
@@ -46,20 +46,6 @@ module.exports = {
       user.surname = surname || user.surname;
       user.avatar = req.file?.filename || user.avatar;
 
-      
-      /* Si existe un error en el tipo de archivo */
-      if (req.fileValidationError) {
-        throw {
-          name: "sequelize",
-          errors: [
-            {
-              path: "avatar",
-              message: req.fileValidationError,
-            },
-          ],
-        };
-      }
-
       /* address */
       address.street = street || address.street;
       address.city = city || address.city;
@@ -71,7 +57,7 @@ module.exports = {
       return res.status(200).json({
         ok: true,
         status: 200,
-        data: user,
+        data: user
       });
     } catch (err) {
       return sendJsonError(err, res);

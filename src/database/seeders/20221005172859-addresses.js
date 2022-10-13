@@ -1,20 +1,38 @@
 "use strict";
 
+const { ID_ADMIN } = require("../../constants");
+
 const addresses = [
   {
-    street: "",
-    city: "",
-    province: "",
-    userId: 1,
+    street: "adminStreet 123",
+    city: "adminCity",
+    province: "adminProvince",
+    userId: ID_ADMIN,
     active:true,
     createdAt: new Date(),
   },
   {
-    street: "",
-    city: "",
-    province: "",
+    street: "adminStreet2 321",
+    city: "adminCity2",
+    province: "adminProvince2",
+    userId: ID_ADMIN,
+    active:false,
+    createdAt: new Date(),
+  },
+  {
+    street: "regularStreet 123",
+    city: "regularCity",
+    province: "regularProvince",
     userId: 2,
     active:true,
+    createdAt: new Date(),
+  },
+  {
+    street: "regularStreet2 321",
+    city: "regularCity2",
+    province: "regularProvince2",
+    userId: 2,
+    active:false,
     createdAt: new Date(),
   },
 ];

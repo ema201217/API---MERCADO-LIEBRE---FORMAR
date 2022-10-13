@@ -20,19 +20,26 @@ const mapped = (errors = []) =>
 const sendJsonError = (
   err,
   res,
-  codeStatus = /sequelize/gi.test(err.name) ? 422 : 500
+  codeStatus = /[sequelize|AggregateError]/gi.test(err.name) ? 422 : 500
 ) => {
-  let prop = "error",
-    responseErr = "";
-    
-    // Funcion que mapea un array de objetos
-    // example -->  [{ email : "Campo requerido" },{password : "Credenciales invalidas"}]
+  let prop = "error";
+  let responseErr;
 
-  if (err.errors && Array.isArray(err.errors)) {
-    prop += "s";
-    // si en el primer objecto obtenido existe la propiedad path y message significa que es un error enviado por sequelize
-    if (err.name && /sequelize/gi.test(err.name)) {
-      responseErr = mapped(err.errors); // mapeamos el array de errores
+  // Funcion que mapea un array de objetos
+  // example -->  [{ email : "Campo requerido" },{password : "Credenciales invalidas"}]
+
+  if (err.name && /sequelize|AggregateError/gi.test(err.name)) {
+    let errorsArray = err.errors;
+
+    if (/AggregateError/gi.test(err.name)) {
+      errorsArray = err.errors[0].errors.errors;
+    }
+
+    // console.log(errorsArray instanceof Array);
+    if (err.errors && Array.isArray(errorsArray)) {
+      prop += "s";
+      // si en el primer objecto obtenido existe la propiedad path y message significa que es un error enviado por sequelize
+      responseErr = mapped(errorsArray); // mapeamos el array de errores
     }
 
     // si enviamos por con throw desde el Try colocamos el mensaje colocado con la instancia "new Error"

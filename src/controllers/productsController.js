@@ -273,20 +273,7 @@ const controller = {
           };
         });
       }
-      await db.Image.bulkCreate(images, { validator: true });
-
-      /* Si existe un error en el tipo de archivo */
-      if (req.fileValidationError) {
-        throw {
-          name: "sequelize",
-          errors: [
-            {
-              path: "images",
-              message: req.fileValidationError,
-            },
-          ],
-        };
-      }
+      await db.Image.bulkCreate(images,{validate:true});
 
       /* 201: «Creado». El servidor ha cumplido con la petición del navegador y, como resultado, ha creado un nuevo recurso. */
       return res.status(201).json({
@@ -300,7 +287,7 @@ const controller = {
       /* Esta validación de archivos "images" se origina desde Multer en la carpeta de middlewares */
 
       /* REMOVE FILES IMAGES */
-      if (req.files && err.errors?.length) {
+  /*     if (req.files && err.errors?.length) {
         req.files.forEach((file) =>
           fs.unlinkSync(
             path.join(
@@ -309,8 +296,8 @@ const controller = {
             )
           )
         );
-      }
-
+      } */
+console.log(err.name);
       sendJsonError(err, res);
     }
   },

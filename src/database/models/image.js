@@ -1,5 +1,6 @@
 "use strict";
-const { Model } = require("sequelize");
+const { Model, AggregateError, Error, ValidationErrorItem } = require("sequelize");
+const fs = require("fs");
 const path = require("path");
 const { objectValidate } = require("../resources/validationsDefault");
 module.exports = (sequelize, DataTypes) => {
@@ -13,18 +14,24 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
   }
+
   Image.init(
     {
       file: {
-        type:DataTypes.STRING,
+        type: DataTypes.STRING,
         validate: {
-          /* file(value){
-            if(!/[.png|.jpg|.jpeg|.webp]/ig.test(value)){
-              throw new Error("Archivo invalido")
+          isImage(file) {
+            if (!/.png|.jpg|.jpeg|.webp/gi.test(file)) {
+              fs.unlinkSync(
+                path.join(
+                  __dirname,
+                  `../../../public/images/products/${file}`
+                )
+              );
+              throw new Error("Uno o más archivos son inválidos");
             }
-          }, */
-          not:objectValidate(/[.png|.jpg|.jpeg|.webp]/ig,"Error de archivo")
-        }
+          },
+        },
       },
       productId: DataTypes.INTEGER,
       deletedAt: DataTypes.DATE,
