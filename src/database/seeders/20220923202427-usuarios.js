@@ -1,6 +1,7 @@
 "use strict";
 const { hashSync } = require("bcryptjs");
 const { ID_ADMIN, ROL_ADMIN, ROL_USER, PASSWORD_DEFAULT } = require("../../constants");
+require("dotenv").config();
 
 const users = [
   {

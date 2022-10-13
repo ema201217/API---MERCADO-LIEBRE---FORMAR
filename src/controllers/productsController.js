@@ -13,9 +13,6 @@ const controller = {
     );
   },
 
-  // API --> SEARCH PRODUCTS
-  search: (req, res) => {},
-
   // API -> ALL PRODUCTS + QUERIES
   all: async (req, res) => {
     try {
@@ -28,7 +25,7 @@ const controller = {
         sortBy = "name",
         page = 1,
         salesDiscount = 10,
-        search = search?.toLowerCase() || null,
+        search = "",
       } = req.query;
 
       /* Valores que se utilizaran en la url y no sufren modificaciones lógicas */
@@ -70,7 +67,7 @@ const controller = {
       /* ********************************************* */
 
       /* Si el LIMIT es muy alto */
-      limit = +limit > 20 ? 10 : +limit;
+      limit = +limit > 20 ? 20 : +limit;
       /* Si la pagina es menor o igual a cero o si no es un numero */
       page = +page <= 0 || isNaN(+page) ? 1 : +page;
       /* luego restamos a la pagina un uno para que la multiplicación sea correcta ya que el offset comenzaría en 0 y no en 1 */
@@ -157,15 +154,15 @@ const controller = {
       /* COMPROBAR SI EXISTE UNA PAGINA ANTERIOR O POSTERIOR */
       /* Si la pagina ingresada es mayor a cero y el offset menor o igual a la cantidad total de productos */
       const existPrev = page > 0 && offset <= count;
-      const existNext = Math.floor(count / limit) > page;
+      const existNext = Math.floor(count / limit) > page + 1;
 
       /* PAGINA ANTERIOR */
-      let prev = null;
-      let next = null;
+      let urlPrev = null;
+      let urlNext = null;
 
       /* OFFSET PREV Y NEXT */
       const offsetPrev = offset - limit;
-      const offsetNext = offset;
+      const offsetNext = offset + limit;
 
       /* QUERIES DINÁMICAS */
       let urlQueries = "";
@@ -176,14 +173,14 @@ const controller = {
 
       /* SI HAY PAGINADO POSTERIOR */
       if (existNext) {
-        next = `${req.protocol}://${req.get("host")}${req.baseUrl}?page=${
+        urlNext = `${req.protocol}://${req.get("host")}${req.baseUrl}?page=${
           page + 2
         }&offset=${offsetNext}${urlQueries}`;
       }
 
       /* SI EXISTE PAGINADO ANTERIOR O SI NO EXISTE EL PAGINADO POSTERIOR */
-      if (existPrev || !existNext) {
-        prev = `${req.protocol}://${req.get("host")}${
+      if (existPrev) {
+        urlPrev = `${req.protocol}://${req.get("host")}${
           req.baseUrl
         }?page=${page}&offset=${offsetPrev}${urlQueries}`;
       }
@@ -199,9 +196,10 @@ const controller = {
           status: 200,
         },
         data: {
-          total: count,
-          prev,
-          next,
+          totalProducts: count,
+          totalPage: Math.round(count / limit),
+          prev: urlPrev,
+          next: urlNext,
           products,
         },
       });
@@ -273,7 +271,7 @@ const controller = {
           };
         });
       }
-      await db.Image.bulkCreate(images,{validate:true});
+      await db.Image.bulkCreate(images, { validate: true });
 
       /* 201: «Creado». El servidor ha cumplido con la petición del navegador y, como resultado, ha creado un nuevo recurso. */
       return res.status(201).json({
@@ -287,7 +285,7 @@ const controller = {
       /* Esta validación de archivos "images" se origina desde Multer en la carpeta de middlewares */
 
       /* REMOVE FILES IMAGES */
-  /*     if (req.files && err.errors?.length) {
+      /*     if (req.files && err.errors?.length) {
         req.files.forEach((file) =>
           fs.unlinkSync(
             path.join(
@@ -297,7 +295,7 @@ const controller = {
           )
         );
       } */
-console.log(err.name);
+      console.log(err.name);
       sendJsonError(err, res);
     }
   },

@@ -1,8 +1,8 @@
 "use strict";
-const { Model, AggregateError, Error, ValidationErrorItem } = require("sequelize");
+const { Model } = require("sequelize");
 const fs = require("fs");
 const path = require("path");
-const { objectValidate } = require("../resources/validationsDefault");
+
 module.exports = (sequelize, DataTypes) => {
   class Image extends Model {
     static associate(models) {
@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         validate: {
           isImage(file) {
+            
             if (!/.png|.jpg|.jpeg|.webp/gi.test(file)) {
               fs.unlinkSync(
                 path.join(
@@ -31,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
               throw new Error("Uno o más archivos son inválidos");
             }
           },
-        },
+        }
       },
       productId: DataTypes.INTEGER,
       deletedAt: DataTypes.DATE,

@@ -25,13 +25,15 @@ const sendJsonError = (
   let prop = "error";
   let responseErr;
 
+  console.log(err);
   // Funcion que mapea un array de objetos
   // example -->  [{ email : "Campo requerido" },{password : "Credenciales invalidas"}]
 
-  if (err.name && /sequelize|AggregateError/gi.test(err.name)) {
+  if (err.name && /[sequelize|AggregateError]/gi.test(err.name)) {
     let errorsArray = err.errors;
 
     if (/AggregateError/gi.test(err.name)) {
+      err.errors[0].errors.errors[0].path = "images"
       errorsArray = err.errors[0].errors.errors;
     }
 
@@ -57,5 +59,5 @@ const sendJsonError = (
 };
 
 module.exports = {
-  sendJsonError,
+  sendJsonError
 };
