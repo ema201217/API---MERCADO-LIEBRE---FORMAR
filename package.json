@@ -3,10 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "reset-db": "npx sequelize-cli db:migrate:undo:all && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all",
     "start": "node ./src/bin/www",
     "dev": "nodemon ./src/bin/www",
-    "dev:reset" : "npm run reset-db && nodemon ./src/bin/www"
+    "create:db": "sequelize db:create && sequelize db:migrate && sequelize db:seed:all",
+    "reset:db": "sequelize db:drop && sequelize db:create && sequelize db:migrate && sequelize db:seed:all",
+    "dev:reset":"npm run reset:db && nodemon ./src/bin/www"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
