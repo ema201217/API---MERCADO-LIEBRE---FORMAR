@@ -154,7 +154,7 @@ const controller = {
       /* COMPROBAR SI EXISTE UNA PAGINA ANTERIOR O POSTERIOR */
       /* Si la pagina ingresada es mayor a cero y el offset menor o igual a la cantidad total de productos */
       const existPrev = page > 0 && offset <= count;
-      const existNext = Math.floor(count / limit) > page + 1;
+      const existNext = Math.floor(count / limit) >= page + 1 && limit !== count;
 
       /* PAGINA ANTERIOR */
       let urlPrev = null;
@@ -197,7 +197,7 @@ const controller = {
         },
         data: {
           totalProducts: count,
-          totalPage: Math.round(count / limit),
+          totalPage: Math.ceil(count / limit),
           prev: urlPrev,
           next: urlNext,
           products,
