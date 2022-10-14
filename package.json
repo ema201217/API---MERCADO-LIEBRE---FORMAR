@@ -6,8 +6,10 @@
     "dev": "nodemon ./src/bin/www",
     "create:db": "sequelize db:create && sequelize db:migrate && sequelize db:seed:all",
     "reset:db": "sequelize db:drop && sequelize db:create && sequelize db:migrate && sequelize db:seed:all",
-    "dev:reset":"npm run reset:db && nodemon ./src/bin/www",
-    "start": "npm run reset:db && node ./src/bin/www"
+    "dev:reset": "npm run reset:db && nodemon ./src/bin/www",
+    "start": "npm run reset:db && node ./src/bin/www",
+    "create:db:production": "cross-env NODE_ENV=production npm run create:db",
+    "reset:db:production": "cross-env NODE_ENV=production npm run reset:db"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -25,6 +27,7 @@
     "sequelize": "^6.22.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "nodemon": "^2.0.1",
     "sequelize-cli": "^6.5.1"
   }
